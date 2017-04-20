@@ -5,20 +5,20 @@ local options = require "mp.options"
 local cut_pos = nil
 local copy_audio = true
 local o = {
-    target_dir = "~",
-    vcodec = "rawvideo",
-    acodec = "pcm_s16le",
+    target_dir = "~/mpv_slicing",
+    vcodec = "libx264",
+    acodec = "libfdk_aac",
     prevf = "",
-    vf = "format=yuv444p16$hqvf,scale=in_color_matrix=$matrix,format=bgr24",
+    vf = "",
     hqvf = "",
     postvf = "",
     opts = "",
-    ext = "avi",
+    ext = "mp4",
     command_template = [[
-        ffmpeg -v warning -y -stats
+        ffmpeg -y -stats
         -ss $shift -i '$in' -t $duration
         -c:v $vcodec -c:a $acodec $audio
-        -vf $prevf$vf$postvf $opts '$out.$ext'
+        $opts '$out.$ext'
     ]],
 }
 options.read_options(o)
