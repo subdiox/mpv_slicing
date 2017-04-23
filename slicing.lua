@@ -2,6 +2,7 @@ local msg = require "mp.msg"
 local utils = require "mp.utils"
 local options = require "mp.options"
 
+local running = false
 local cut_pos = nil
 local copy_audio = true
 local o = {
@@ -75,6 +76,7 @@ function get_outname(shift, endpos)
 end
 
 function cut(shift, endpos)
+    --paths.mkdir(o.target_dir)
     local cmd = trim(o.command_template:gsub("%s+", " "))
     local inpath = escape(utils.join_path(
         utils.getcwd(),
@@ -102,7 +104,8 @@ function cut(shift, endpos)
 
     msg.info(cmd)
     log(cmd)
-    os.execute(cmd)
+    running = true
+    io.popen(cmd)
 end
 
 function toggle_mark()
@@ -122,6 +125,7 @@ function toggle_mark()
             cut(shift, endpos)
         end
     else
+        running = false
         cut_pos = pos
         osd(string.format("Marked %s as start position", timestamp(pos)))
     end
@@ -132,5 +136,19 @@ function toggle_audio()
     osd("Audio capturing is " .. (copy_audio and "enabled" or "disabled"))
 end
 
+function toggle_revert()
+    if running then
+        osd("Couldn't revert because it is being encoded. Please use Ctrl+C on Terminal")
+    else
+        if cut_pos then
+            osd(string.format("Reverted start position of %s", timestamp(cut_pos)))
+            cut_pos = nil
+        else
+            ost("Coudln't revert")
+        end
+    end
+end
+
 mp.add_key_binding("c", "slicing_mark", toggle_mark)
 mp.add_key_binding("a", "slicing_audio", toggle_audio)
+mp.add_key_binding("b", "slicing_revert", toggle_revert)
