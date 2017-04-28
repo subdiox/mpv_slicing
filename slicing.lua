@@ -46,9 +46,9 @@ local o = {
     ext = "mp4",
     command_template = [[
         ffmpeg -y -stats
-        -ss $shift -i '$in' -t $duration
+        -ss $shift -i "$in" -t $duration
         -c:v $vcodec -c:a $acodec $audio
-        $opts '$out.$ext'
+        $opts "$out.$ext"
     ]],
 }
 options.read_options(o)
@@ -64,7 +64,7 @@ function short_timestamp(duration)
     local hours = duration / 3600
     local minutes = duration % 3600 / 60
     local seconds = duration % 60
-    return string.format("%02d:%02d:%02d", hours, minutes, seconds)
+    return string.format("%02d%02d%02d", hours, minutes, seconds)
 end
 
 
@@ -110,7 +110,13 @@ function cut(shift, endpos)
 
     local cmd = trim(o.command_template:gsub("%s+", " "))
     local inpath = path
-    local outpath = escape(string.format("/%s%s%s", dir_path, separator, get_outname(shift, endpos)))
+    if separator == "\\" then
+        local inpath_array = path:split(separator)
+        inpath = table.join(inpath_array, separator)
+        inpath = escape(string.format("%s%s", separator, inpath))
+    end
+
+    local outpath = escape(string.format("%s%s%s%s", separator, dir_path, separator, get_outname(shift, endpos)))
     cmd = cmd:gsub("$shift", shift)
     cmd = cmd:gsub("$duration", endpos - shift)
     cmd = cmd:gsub("$vcodec", o.vcodec)
